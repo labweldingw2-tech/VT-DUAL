@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>UJIAN VT DUAL METHODE</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>AWS D1.1 - ULTIMATE EXAM SYSTEM</title>
+    <style>
+        :root { --metal: #2c3e50; --accent: #ffa502; --danger: #ff4757; --success: #2ed573; --info: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: #f1f2f6; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1400px; margin: auto; display: grid; grid-template-columns: 1.7fr 1.3fr; gap: 20px; }
+        .header-box { grid-column: span 2; background: #1e272e; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid var(--accent); }
+        .timer-box { background: #000; padding: 10px 20px; border-radius: 5px; border: 2px solid var(--info); color: var(--info); font-family: 'Courier New', monospace; font-weight: bold; font-size: 24px; min-width: 100px; text-align: center; }
+        
+        /* VIEWPORT */
+        .viewport { width: 100%; height: 200px; background: var(--metal); position: relative; border: 2px solid #3d3d3d; border-radius: 8px; overflow: hidden; cursor: crosshair; margin-bottom: 20px; }
+        .weld-face { width: 100%; height: 70px; position: absolute; top: 50%; transform: translateY(-50%); background: repeating-linear-gradient(90deg, #4b4b4b, #57606f 12px, #4b4b4b 24px); box-shadow: inset 0 0 15px #000; z-index: 1; }
+        .weld-root { width: 100%; height: 45px; position: absolute; top: 50%; transform: translateY(-50%); background: #3d4652; border-top: 1px solid #555; border-bottom: 1px solid #555; box-shadow: inset 0 0 15px #111; z-index: 1; }
+        
+        .defect { position: absolute; z-index: 10; pointer-events: none; }
+        .ip { height: 10px; background: #000; border-radius: 10px; box-shadow: 0 0 5px #000; }
+        .undercut { height: 6px; background: rgba(0,0,0,0.6); filter: blur(1px); }
+        .crack-svg { position: absolute; overflow: visible; stroke: #000; stroke-width: 2; fill: none; z-index: 11; }
+        .porosity { background: #000; border-radius: 50%; }
+
+        .card { background: #f5f6fa; color: #2f3640; padding: 20px; border-radius: 8px; margin-bottom: 15px; }
+        .btn { border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; text-transform: uppercase; }
+        .btn-submit { background: var(--success); color: white; }
+        .btn-next { background: var(--info); color: white; }
+        .theory-option { display: block; background: #fff; border: 1px solid #ddd; padding: 12px; margin: 8px 0; border-radius: 5px; cursor: pointer; text-align: left; width: 100%; }
+        .theory-option.selected { background: var(--accent); color: white; }
+        
+        #modal-result { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; }
+        .cert-box { background: white; color: black; padding: 40px; border: 15px double #2c3e50; text-align: center; width: 500px; }
+        
+        #ruler { position: absolute; border-top: 2px dashed var(--accent); pointer-events: none; display: none; z-index: 100; transform-origin: 0 0; }
+        #ruler-val { position: absolute; background: var(--accent); color: #000; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; display: none; z-index: 101; }
+        
+        .key-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+        .key-table th, .key-table td { border: 1px solid #444; padding: 5px; text-align: left; }
+        .key-table th { background: #333; color: var(--accent); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-box">
+        <div><h2 style="margin:0">AWS D1.1 ULTIMATE SYSTEM</h2></div>
+        <div class="timer-box" id="timer">02:00</div>
+        <div style="text-align: right;">
+            <div>INSPECTOR: <span id="user-disp" style="color:var(--accent)">-</span></div>
+            <div>STASE: <span id="progress-text">1 / 10</span></div>
+        </div>
+    </div>
+
+    <div id="viewport-section" style="opacity: 0.2; pointer-events: none;">
+        <div class="view-label">FACE VIEW</div>
+        <div id="view-face" class="viewport" onmousedown="startRuler(event)" onmousemove="moveRuler(event)" onmouseup="endRuler()">
+            <div class="weld-face"></div><div id="face-layer"></div>
+        </div>
+        <div class="view-label">ROOT VIEW</div>
+        <div id="view-root" class="viewport" onmousedown="startRuler(event)" onmousemove="moveRuler(event)" onmouseup="endRuler()">
+            <div class="weld-root"></div><div id="root-layer"></div>
+        </div>
+        <div id="ruler"></div><div id="ruler-val">0 mm</div>
+    </div>
+
+    <div class="sidebar">
+        <div class="card" id="form-login">
+            <h3>Login Inspector</h3>
+            <input type="text" id="input-name" placeholder="Nama Lengkap..." style="width:95%; padding:12px; margin-bottom:15px;">
+            <button class="btn btn-next" onclick="startExam()">MULAI UJIAN</button>
+        </div>
+
+        <div class="card" id="form-exam" style="display:none;">
+            <div id="theory-container" style="display:none;">
+                <h3 id="q-text"></h3>
+                <div id="q-options"></div>
+            </div>
+            <div id="inputs-container" style="display:none;"></div>
+            <button id="btn-submit" class="btn btn-submit" onclick="submitStep()">SUBMIT JAWABAN</button>
+            <div id="key-section" style="display:none; margin-top:15px; padding:10px; background:#1e272e; border-radius:5px; border-left: 5px solid var(--accent);">
+                <div id="key-text"></div>
+                <button class="btn btn-next" style="margin-top:10px;" onclick="nextStep()">SOAL BERIKUTNYA</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-result">
+    <div class="cert-box">
+        <h1>HASIL EVALUASI</h1>
+        <h2 id="res-name"></h2>
+        <div id="res-score" style="font-size:70px; font-weight:bold;"></div>
+        <p id="res-status"></p>
+        <button class="btn btn-next" onclick="homeReset()">KEMBALI KE HOME</button>
+    </div>
+</div>
+
+<script>
+    // PENTING: GANTI URL DI BAWAH INI DENGAN URL WEB APP GOOGLE SCRIPT ANDA
+    const G_SHEET_URL = "https://script.google.com/macros/s/AKfycbzth2Cfigm8MlDaDBr4EsOSoAndcGKDf-2OBUpnJF4hpKVBHkoMuSav-RCowlnLbmbI/exec";
+
+    let specIndex = 1, totalScore = 0, currentAnswers = [], currentParticipant = "";
+    let timerInterval, timeLeft = 120, activeTheoryQuestions = [];
+    let isDrawing = false, startX, startY, activeViewport = null, selectedTheoryOpt = null;
+
+    const bankTheory = [
+        { q: "Berapa batas reinforcement maksimal pada AWS D1.1?", a: "3.0 mm", options: ["1.5 mm", "3.0 mm", "5.0 mm", "6.0 mm"] },
+        { q: "Jenis cacat yang dilarang tanpa toleransi (Prohibited)?", a: "Crack", options: ["Undercut", "Crack", "Porosity", "Overlap"] },
+        { q: "Kedalaman undercut maksimal untuk beban statis?", a: "1.0 mm", options: ["0.5 mm", "1.0 mm", "2.0 mm", "3.0 mm"] },
+        { q: "Ketentuan kriteria visual AWS D1.1 ada di?", a: "Clause 6", options: ["Clause 2", "Clause 4", "Clause 6", "Clause 10"] },
+        { q: "Ukuran porositas maksimal yang diizinkan?", a: "2.0 mm", options: ["1.0 mm", "2.0 mm", "3.0 mm", "5.0 mm"] }
+    ];
+
+    const types = [
+        { id: 'crack', label: 'Crack' }, { id: 'porosity', label: 'Porosity' },
+        { id: 'undercut', label: 'Undercut' }, { id: 'ip', label: 'Incomplete Penetration' }
+    ];
+
+    function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+
+    function startExam() {
+        const n = document.getElementById('input-name').value;
+        if(!n) return alert("Isi Nama!");
+        currentParticipant = n;
+        document.getElementById('user-disp').innerText = n.toUpperCase();
+        document.getElementById('form-login').style.display = 'none';
+        document.getElementById('form-exam').style.display = 'block';
+        activeTheoryQuestions = shuffle([...bankTheory]).slice(0, 5);
+        specIndex = 1; totalScore = 0;
+        loadStep();
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 120;
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            const m = Math.floor(timeLeft/60), s = timeLeft%60;
+            document.getElementById('timer').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            if(timeLeft <= 0) { clearInterval(timerInterval); submitStep(); }
+        }, 1000);
+    }
+
+    function loadStep() {
+        document.getElementById('progress-text').innerText = `${specIndex} / 10`;
+        document.getElementById('key-section').style.display = 'none';
+        document.getElementById('btn-submit').style.display = 'block';
+        startTimer();
+
+        if(specIndex <= 5) {
+            document.getElementById('viewport-section').style.opacity = "0.2";
+            document.getElementById('theory-container').style.display = "block";
+            document.getElementById('inputs-container').style.display = "none";
+            const qData = activeTheoryQuestions[specIndex-1];
+            document.getElementById('q-text').innerText = `SOAL ${specIndex}: ${qData.q}`;
+            document.getElementById('q-options').innerHTML = shuffle([...qData.options]).map(o => 
+                `<button class="theory-option" onclick="selectOpt(this, '${o}')">${o}</button>`).join('');
+            selectedTheoryOpt = null;
+        } else {
+            document.getElementById('viewport-section').style.opacity = "1";
+            document.getElementById('viewport-section').style.pointerEvents = "auto";
+            document.getElementById('theory-container').style.display = "none";
+            document.getElementById('inputs-container').style.display = "block";
+            loadInterpretForm();
+            generateDefects();
+        }
+    }
+
+    function selectOpt(btn, val) {
+        document.querySelectorAll('.theory-option').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedTheoryOpt = val;
+    }
+
+    function loadInterpretForm() {
+        let h = "<h4>Identifikasi 3 Temuan Cacat:</h4>";
+        for(let i=1; i<=3; i++) {
+            h += `<div style="display:grid; grid-template-columns: 1.2fr 0.8fr 0.8fr; gap:5px; margin-bottom:10px;">
+                <select id="t${i}">${types.map(t => `<option value="${t.id}">${t.label}</option>`).join('')}</select>
+                <input type="number" id="s${i}" placeholder="mm" step="0.1">
+                <select id="d${i}"><option value="ACCEPT">ACC</option><option value="REJECT">REJ</option></select>
+            </div>`;
+        }
+        h += `<label>Keputusan Akhir:</label><select id="final-decision" style="width:100%; padding:8px;"><option value="ACCEPT">ACCEPTED</option><option value="REJECT">REJECTED</option></select>`;
+        document.getElementById('inputs-container').innerHTML = h;
+    }
+
+    function generateDefects() {
+        const face = document.getElementById('face-layer');
+        const root = document.getElementById('root-layer');
+        face.innerHTML = ""; root.innerHTML = ""; currentAnswers = [];
+        
+        for(let i=0; i<3; i++) {
+            const def = types[Math.floor(Math.random() * types.length)];
+            const sizeMm = (Math.random() * 3 + 0.5).toFixed(1);
+            const sizePx = sizeMm / 0.2;
+            const x = 60 + (i * 240) + (Math.random() * 40);
+            
+            if(def.id === 'ip') {
+                const d = document.createElement('div'); d.className="defect ip"; d.style.left=x+'px'; d.style.top='95px'; d.style.width=sizePx+'px';
+                root.appendChild(d);
+            } else if(def.id === 'crack') {
+                face.innerHTML += `<svg class="crack-svg" style="left:${x}px; top:90px" width="${sizePx}" height="20"><path d="M 0 10 L ${sizePx*0.4} 2 L ${sizePx*0.7} 18 L ${sizePx} 10" stroke="black"/></svg>`;
+            } else if(def.id === 'undercut') {
+                const d = document.createElement('div'); d.className="defect undercut"; d.style.left=x+'px'; d.style.top=(Math.random()>0.5?'65px':'130px'); d.style.width=sizePx+'px';
+                face.appendChild(d);
+            } else {
+                const d = document.createElement('div'); d.className="defect porosity"; d.style.left=x+'px'; d.style.top='90px'; d.style.width=sizePx+'px'; d.style.height=sizePx+'px';
+                face.appendChild(d);
+            }
+            let isRej = (def.id==='crack' || def.id==='ip' || sizeMm > 2.0 || (def.id==='undercut' && sizeMm > 1.0));
+            currentAnswers.push({ label: def.label, id: def.id, size: parseFloat(sizeMm), dec: isRej ? "REJECT" : "ACCEPT" });
+        }
+    }
+
+    function submitStep() {
+        clearInterval(timerInterval);
+        let s = 0, htmlContent = "";
+
+        if(specIndex <= 5) {
+            const q = activeTheoryQuestions[specIndex-1];
+            if(selectedTheoryOpt === q.a) s = 100;
+            htmlContent = `<p>Jawaban: <b>${selectedTheoryOpt || 'KOSONG'}</b> | Kunci: <b>${q.a}</b></p>`;
+        } else {
+            const uFinal = document.getElementById('final-decision').value;
+            const sFinal = currentAnswers.some(a => a.dec === "REJECT") ? "REJECT" : "ACCEPT";
+            if(uFinal === sFinal) s += 40;
+            htmlContent = `<table class="key-table"><tr><th>Defect</th><th>Size</th><th>Criteria</th><th>Status</th></tr>`;
+            currentAnswers.forEach((a, i) => {
+                if(document.getElementById(`t${i+1}`).value === a.id) s += 10;
+                if(Math.abs(parseFloat(document.getElementById(`s${i+1}`).value) - a.size) <= 0.8) s += 10;
+                let crit = (a.id==='crack') ? "None" : (a.id==='undercut') ? "max 1.0" : "max 2.0";
+                htmlContent += `<tr><td>${a.label}</td><td>${a.size}mm</td><td>${crit}</td><td>${a.dec}</td></tr>`;
+            });
+            htmlContent += `</table>`;
+        }
+        totalScore += s;
+        document.getElementById('key-text').innerHTML = htmlContent;
+        document.getElementById('key-section').style.display = 'block';
+        document.getElementById('btn-submit').style.display = 'none';
+    }
+
+    function nextStep() {
+        if(specIndex >= 10) {
+            const f = (totalScore / 10).toFixed(1);
+            const status = f >= 70 ? "PASSED" : "FAILED";
+            document.getElementById('res-name').innerText = currentParticipant.toUpperCase();
+            document.getElementById('res-score').innerText = f;
+            document.getElementById('res-status').innerText = status;
+            document.getElementById('modal-result').style.display = 'flex';
+            
+            // KIRIM KE G-SHEET
+            fetch(G_SHEET_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ nama: currentParticipant, skor: f, status: status }) });
+        } else { specIndex++; loadStep(); }
+    }
+
+    function homeReset() {
+        document.getElementById('modal-result').style.display = 'none';
+        document.getElementById('form-exam').style.display = 'none';
+        document.getElementById('form-login').style.display = 'block';
+        document.getElementById('viewport-section').style.opacity = "0.2";
+        document.getElementById('input-name').value = "";
+        specIndex = 1; totalScore = 0; clearInterval(timerInterval);
+    }
+
+    function startRuler(e) { isDrawing = true; activeViewport = e.currentTarget; const r = activeViewport.getBoundingClientRect(); startX = e.clientX - r.left; startY = e.clientY - r.top; document.getElementById('ruler').style.display = 'block'; }
+    function moveRuler(e) { if(!isDrawing) return; const r = activeViewport.getBoundingClientRect(); const curX = e.clientX - r.left; const curY = e.clientY - r.top; const dist = (Math.sqrt(Math.pow(curX-startX, 2) + Math.pow(curY-startY, 2)) * 0.2).toFixed(1); const rl = document.getElementById('ruler'); rl.style.left = (startX + r.left + window.scrollX) + 'px'; rl.style.top = (startY + r.top + window.scrollY) + 'px'; rl.style.width = (dist/0.2) + 'px'; rl.style.transform = `rotate(${Math.atan2(curY-startY, curX-startX)}rad)`; const v = document.getElementById('ruler-val'); v.style.display = 'block'; v.style.left = (e.clientX + 10) + 'px'; v.style.top = (e.clientY - 20) + 'px'; v.innerText = dist + " mm"; }
+    function endRuler() { isDrawing = false; }
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
